@@ -18,10 +18,13 @@ module.exports = {
             // Perform instant distribution
             const fromAccount = campaign.publisherWalletAddress;
             const toAccount = marketer.userAddress;
-            console.log("From "+fromAccount);
-            console.log("To "+toAccount);
+            campaign.lastPayment = new Date();
+            campaign.save({});
             
-            PaymentModel.performInstantDistribution(fromAccount, toAccount, 1).then(function(response){
+            
+            
+            PaymentModel.performInstantDistribution(fromAccount, toAccount, 0.01).then(function(response){
+              
               console.log("Finish perform instant distribution");
             })
           })

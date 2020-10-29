@@ -1,6 +1,8 @@
 var Campaign = require('../schema/Campaign');
 module.exports = {
   submitCampaignDetails: function(payload) {
+    payload.createdAt = new Date();
+    
     var campaign = new Campaign(payload);
     return campaign.save({}).then(function(saveResponse){
       return saveResponse;

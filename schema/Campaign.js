@@ -11,7 +11,9 @@ var campaign = new mongoose.Schema({
     likePayout: String,
     retweetPayout: String,
     commentPayout: String,
-    marketers: [{'campaignLink': String, 'userAddress': String}]
+    marketers: [{'campaignLink': String, 'userAddress': String}],
+    createdAt: Date,
+    lastPayment: Date,
     
    });
   

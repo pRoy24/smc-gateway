@@ -296,9 +296,17 @@ function mintTokensForAccount(account) {
 
 function performInstantDistribution(accountFrom, accountTo, amount) {
   const sf = sfObject;
-  return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateSubscription(daix.address, 42, accountTo, 50, "0x").encodeABI(), { from: accountFrom })
+  
+  return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateSubscription(daix.address, 42, accountTo, 100, "0x").encodeABI(), { from: accountFrom })
   .then(function(response){
-    return response;
+    
+    return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateIndex(daix.address, 42, web3.utils.toWei("0.01", "ether"), "0x").encodeABI(), { from: accountFrom })
+    .then(function(dataRes){
+  
+    return dataRes;
+    
+        
+    })
   })  
 }
 
@@ -306,4 +314,14 @@ function getUserBalance(address) {
   return daix.balanceOf(address).then(function(balanceResponse){
     return balanceResponse.toString();
   })
+}
+
+function createFlow(accountFrom, accountTo) {
+  const sf = sfObject;
+  return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateSubscription(daix.address, 42, accountTo, 100, "0x").encodeABI(), { from: accountFrom })
+  .then(function(response){
+    
+    
+    return response;
+  })    
 }
