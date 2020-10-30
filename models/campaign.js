@@ -1,4 +1,6 @@
 var Campaign = require('../schema/Campaign');
+var Payment = require('../models/payment');
+
 module.exports = {
   submitCampaignDetails: function(payload) {
     payload.createdAt = new Date();
@@ -19,7 +21,6 @@ module.exports = {
     })
   },
   joinCampaign: function(payload) {
-     console.log("joining campaign");
     const campaignData = {'campaignLink': payload.campaignLink, 'userAddress': payload.userAddress}
     return Campaign.findOne({'_id': payload._id}).then(function(campaign){
       if (campaign.marketers) {
@@ -28,7 +29,9 @@ module.exports = {
         campaign.marketers = [campaignData]
       }
       return campaign.save({}).then(function(saveRes){
-        return saveRes;
+        return Payment.updateSubscriptionForProvider(campaign.publisherWalletAddress, payload.userAddress).then(function(createSubscriptionResponse){
+          return saveRes;
+        });
       })
     });
   }

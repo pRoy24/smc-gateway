@@ -1,6 +1,6 @@
 var schedule = require('node-schedule');
 var Campaign = require('../schema/Campaign');
-
+var Tweet = require('../models/tweet');
 var PaymentModel = require('../models/payment');
 
 
@@ -14,21 +14,59 @@ module.exports = {
     var j = schedule.scheduleJob('*/1 * * * *', function(){
       Campaign.find({}).then(function(campaignList){
         campaignList.forEach(function(campaign){
-          campaign.marketers.forEach(function(marketer){
+          let marketerUpdateIndex = 0;
+          campaign.marketers.forEach(function(marketer, mIdx){
+            Tweet.getTweetMetrics(marketer.campaignLink).then(function(twitterMetricResponse){
+              
+
             // Perform instant distribution
             const fromAccount = campaign.publisherWalletAddress;
             const toAccount = marketer.userAddress;
             campaign.lastPayment = new Date();
-            campaign.save({});
+            const previousLikeCount = !isNaN(marketer.favorite_count) ? parseInt(marketer.favorite_count) : 0;
+            const previousRetweetCount = !isNaN(marketer.retweet_count) ? parseInt(marketer.retweet_count) : 0;
+            const newLikeCount = parseInt(twitterMetricResponse.favorite_count);
+            const newRetweetCount = parseInt(twitterMetricResponse.retweet_count);
+
             
+            const likeDiff = newLikeCount - previousLikeCount;
+
+            const retweetDiff = newRetweetCount - previousRetweetCount;
+            let likePayout = 0;
+            let retweetPayout = 0;
             
+            if (likeDiff > 0) {
+              likePayout = likeDiff * parseInt(campaign.likePayout);
+            }
             
-            PaymentModel.performInstantDistribution(fromAccount, toAccount, 0.01).then(function(response){
-              
+            if (retweetDiff > 0) {
+              retweetPayout = retweetDiff * parseInt(campaign.retweetPayout);
+            }
+
+            let totalPayout = (likePayout + retweetPayout) * 100;
+
+            let previousPayout = parseInt(campaign.previous_payout);
+
+            if (!isNaN(previousPayout)) {
+              totalPayout = totalPayout + previousPayout;
+            }
+            console.log("Total payout "+totalPayout);
+            
+            PaymentModel.performInstantDistribution(fromAccount, toAccount, totalPayout).then(function(response){
+
+            marketer.previous_payout = totalPayout;
+            marketer.favorite_count = twitterMetricResponse.favorite_count;
+            marketer.retweet_count = twitterMetricResponse.retweet_count;
+            campaign.marketers[mIdx] = marketer;
+            marketerUpdateIndex ++;
+            
+            if (marketerUpdateIndex === campaign.marketers.length - 1) {
+              campaign.save({});
+            }
               console.log("Finish perform instant distribution");
             })
           })
-          
+          }); 
           
         })
       })

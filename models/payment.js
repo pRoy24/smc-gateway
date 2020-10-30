@@ -40,53 +40,25 @@ module.exports = {
 
     return new Promise((resolve, reject) => (resolve(1)));
   },
-  
-  getPaymentProvider: function() {
-   // setupPaymentProvider();
-    return initializePaymentProvider().then(function(response){
-      return;
-    })
-  },
-  
+
   setupSFProvider: function() {
   //  setupPaymentProvider();
   },
   
-  getAdminAccountBalance: function() {
-    return getAdminBalance().then(function(response){
-      return response;
-    })
-  },
-  mintTokens: function() {
-    return mintTokens().then(function(response){
-      return response;
-    })
-  },
+
   getNetFlow: function(account) {
     return getNetFlow(account).then(function(response){
       return response;
     })
   },
-  createNewFlow: function(account) {
-    return createNewIDAFlow(account).then(function(response){
-      return response;
-    })
-  },
+
   createNewAccount: function() {
    return createNewAccount().then(function(response){
       return response;
     })
 
   },
-  
-  createNewFlowForNewAccount: function() {
-    const account = createNewAccount();
-    getDaiX().then(function(getDaiXResponse){
-      return mintTokens(account.address).then(function(mintResponse){
-       createNewIDAFlow(account.address);
-      });
-    });
-  },
+
   
   setupWeb3Provider: function() {
     const HDWalletProvider = require("@truffle/hdwallet-provider");
@@ -117,100 +89,18 @@ module.exports = {
     return getUserBalance(account).then(function(userBalance){
       return userBalance;
     })
+  },
+  
+  updateSubscriptionForProvider(accountFrom, accountTo) {
+    return updateSubscriptionForProvider(accountFrom, accountTo).then(function(response){
+      return response;
+    })
   }
 
 }
 
 // private functions
 
-function createPublishingIndex(account) {
-  const sf = sfObject;
-  return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.createIndex(daix.address, 42, "0x").encodeABI(), { from: account }).then(function(response){
-    return response;
-  })
-}
-
-
-
-
-
-
-function initializePaymentProvider () {
-  return sfObject.initialize().then(function(sfResponse){
-    return sfResponse;
-  });
-}
-
-function getDaiX() {
-  const sf = sfObject;
-
-  return sfObject.resolver.get("tokens.fDAI").then(function(daiAddress){
-    return sf.contracts.TestToken.at(daiAddress).then(function(daiContract){
-      dai = daiContract;
-      return sf.getERC20Wrapper(daiContract).then(function(daixWrapper){
-        return sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress).then(function(daiX){
-          daix = daiX;
-          return daiX;
-        })
-      });
-    });
-  });
-}
-
-function getAdminBalance() {
- const  admin = accounts[0];
-  const bob = accounts[1];
-  return getDaiX().then(function(daix){
-    return daix.balanceOf(admin).then(function(adminBalance){
-      return web3.utils.toBN(adminBalance);
-    })
-  })
-}
-
-function mintTokens(account) {
-  return dai.mint(account, minAmount, {from: account}).then(function(daiMint){
-    return dai.approve(daix.address, minAmount, {from: account}).then(function(response){
-      return daix.upgrade(minAmount, {from: account}).then(function(response){
-        console.log('done minting and upgrading');
-        return response;
-      })
-    })
-  });
-}
-
-
-function createNewIDAFlow(account){
- return sfObject.host.callAgreement(
-    sfObject.agreements.ida.address,
-    sfObject.agreements.ida.contract.methods.createIndex(daix.address, 42, "0x").encodeABI(), { from: account })
-    .then(function(createFlowResponse){
-
-      return createFlowResponse
-    }).catch(function(err){
-      console.log(err);
-    });
-
-
-}
-
-
-
-function updateFlow() {
-  return sfObject.host.callAgreement(
-    sfObject.agreements.ida.address,
-    sfObject.agreements.ida.contract.methods
-      .updateIndex(daix.address, 42, web3.utils.toWei("0.01", "ether"), "0x").encodeABI(), { from: bob })
-}
-
-
-
-
-
-
-
-
-
-// New private functions
 
 function createNewAccount() {
     return web3.eth.personal.newAccount("test password!").then(function(newAccount){
@@ -273,7 +163,7 @@ function setupDaiX() {
 function mintTokensForAccount(account) {
 
     const sf = sfObject;
-    const minAmount = web3.utils.toBN(web3.utils.toWei("100", "ether"));
+    const minAmount = web3.utils.toBN(web3.utils.toWei("1000000000", "ether"));
     dai.mint(account, minAmount, { from: account })
     
     return dai.approve(daix.address, minAmount, { from: account }).then(function(response){
@@ -281,33 +171,43 @@ function mintTokensForAccount(account) {
         return daix.balanceOf(account).then(function(response){
           return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.createIndex(daix.address, 42, "0x").encodeABI(), { from: account })
           .then(function(createIndexResponse){
-
-            
-   
-          return response.toString();
-          
-     
+         //   return updateIndexForProvider().then(function(updateResponse){
+              return response.toString();
+          //  });
           });
         })
       })
     })
 }
 
+function updateIndexForProvider(account) {
+  const sf = sfObject;
+  return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateIndex(daix.address, 42, web3.utils.toWei("0.01", "ether"), "0x").encodeABI(), { from: accountFrom })
+    .then(function(dataRes){
+      return dataRes;
+    });
+}
+
+
+function updateSubscriptionForProvider(accountFrom, accountTo) {
+   const sf = sfObject;
+   return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateSubscription(daix.address, 42, accountTo, 1, "0x").encodeABI(), { from: accountFrom })
+  .then(function(subscriptionUpdated){
+    
+    return subscriptionUpdated;
+  });
+}
 
 function performInstantDistribution(accountFrom, accountTo, amount) {
   const sf = sfObject;
-  
-  return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateSubscription(daix.address, 42, accountTo, 100, "0x").encodeABI(), { from: accountFrom })
-  .then(function(response){
-    
-    return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateIndex(daix.address, 42, web3.utils.toWei("0.01", "ether"), "0x").encodeABI(), { from: accountFrom })
-    .then(function(dataRes){
-  
-    return dataRes;
-    
-        
-    })
-  })  
+  console.log("Amount to be paid "+amount);
+  return sf.host.callAgreement(sf.agreements.ida.address, sf.agreements.ida.contract.methods.updateIndex(daix.address, 42, web3.utils.toWei(amount.toString(), "ether"), "0x").encodeABI(), { from: accountFrom })
+  .then(function(indexUpdateResponse){
+      daix.balanceOf(accountTo).then(function(newBalance){
+         console.log("New user balance "+newBalance);
+         return newBalance;
+    });
+  });
 }
 
 function getUserBalance(address) {
