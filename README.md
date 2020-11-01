@@ -1,4 +1,4 @@
-# REST API server and models for SuperFluid marketing campaigns
+# REST APIs for SuperFluid marketing campaigns
 
 ## This is a proof of concept for marketing campaign infrastructure that can be built over the SuperFluid framework.
 
@@ -15,15 +15,17 @@ the tweet, as well as get additional metrics such as click through rates, impres
 
 
 To run locally
-```
+
+You need to install Mongodb to store application specific user data.
+
 Create a .env file with the following parameters.
 WEB3_PROVIDER=
-
 TWITTER_API_KEY=
 TWITTER_SECRET_KEY=
 TWITTER_ACCESS_TOKEN=
 TWITTER_TOKEN_SECRET=
 
-- npm install
-- npm start
+```
+  npm install
+  npm start
 ```
