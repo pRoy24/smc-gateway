@@ -36,14 +36,14 @@ module.exports = {
             let retweetPayout = 0;
             
             if (likeDiff > 0) {
-              likePayout = likeDiff * parseInt(campaign.likePayout);
+              likePayout = newLikeCount * parseInt(campaign.likePayout);
             }
             
             if (retweetDiff > 0) {
-              retweetPayout = retweetDiff * parseInt(campaign.retweetPayout);
+              retweetPayout = newRetweetCount * parseInt(campaign.retweetPayout);
             }
 
-            let totalPayout = (likePayout + retweetPayout) * 100;
+            let totalPayout = (likePayout + retweetPayout);
 
             let previousPayout = parseInt(campaign.previous_payout);
 
@@ -51,7 +51,9 @@ module.exports = {
               totalPayout = totalPayout + previousPayout;
             }
             console.log("Total payout "+totalPayout);
+            console.log("Previous payout "+marketer.previous_payout);
             
+            if (Number(totalPayout) > Number(marketer.previous_payout)) {
             PaymentModel.performInstantDistribution(fromAccount, toAccount, totalPayout).then(function(response){
 
             marketer.previous_payout = totalPayout;
@@ -60,11 +62,12 @@ module.exports = {
             campaign.marketers[mIdx] = marketer;
             marketerUpdateIndex ++;
             
-            if (marketerUpdateIndex === campaign.marketers.length - 1) {
+            if (marketerUpdateIndex === campaign.marketers.length) {
               campaign.save({});
             }
               console.log("Finish perform instant distribution");
             })
+            }
           })
           }); 
           

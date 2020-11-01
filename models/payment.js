@@ -16,35 +16,6 @@ module.exports = {
       })
     })
   },
-  
-  // Test function 
-  testFlow: function() {
-
-    const newAccount = createNewAccount();
-
-    web3.eth.accounts.wallet.add(newAccount.privateKey);
-
-    web3.eth.accounts.privateKeyToAccount(newAccount.privateKey);
-
-    web3.eth.personal.newAccount("test password!").then(function(newAccount){
-      web3.eth.personal.unlockAccount(newAccount, "test password!", 6000000)
-      .then(function(res){
-            mintTokensForAccount(newAccount).then(function(response){
-            console.log("SUCCESS");
-          })
-      });
-
-
-    })
-
-
-    return new Promise((resolve, reject) => (resolve(1)));
-  },
-
-  setupSFProvider: function() {
-  //  setupPaymentProvider();
-  },
-  
 
   getNetFlow: function(account) {
     return getNetFlow(account).then(function(response){
@@ -56,23 +27,8 @@ module.exports = {
    return createNewAccount().then(function(response){
       return response;
     })
-
   },
 
-  
-  setupWeb3Provider: function() {
-    const HDWalletProvider = require("@truffle/hdwallet-provider");
-    const Web3 = require("web3");
-    if (!process.env.WEB3_MNEMONIC ||
-        !process.env.WEB3_PROVIDER) {
-      console.error("add GOERLI_MNEMONIC and GOERLI_PROVIDER_URL to your .env file");
-      process.exit(1);
-    }
-    
-
-    web3 = new Web3(process.env.WEB3_PROVIDER);
-  },
-  
   generateFundsForAccount: function(account) {
      return mintTokensForAccount(account).then(function(response){
       return {'funds': response, 'address': account};
